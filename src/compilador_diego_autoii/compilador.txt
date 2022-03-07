@@ -1,0 +1,31 @@
+{Comentario}
+ALGORITMO suma () ES
+{comentario}
+
+ a: ENTERO;
+ b: DECIMAL;
+ c: LOGICO;
+ d: CADENA;
+ x: ENTERO
+
+INICIO
+
+x := 33;
+
+SI(a<=b)ENTONCES
+    LEER a,b; 
+SI(a>=b) ENTONCES
+    MIENTRAS(b<a) HACER
+	LEER a,c
+    FIN_MIENTRAS
+SINO
+    ESCRIBIR a,d
+FIN_SI 
+
+SINO
+    ESCRIBIR a,b;
+MIENTRAS(b<a) HACER
+    LEER a,c
+FIN_MIENTRAS
+FIN_SI
+FIN
