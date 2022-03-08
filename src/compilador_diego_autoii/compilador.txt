@@ -1,31 +1,29 @@
-{Comentario}
-ALGORITMO suma () ES
-{comentario}
+ALGORITMO diego () ES
 
- a: ENTERO;
- b: DECIMAL;
- c: LOGICO;
- d: CADENA;
- x: ENTERO
+
+
+ a : ENTERO ;
+ b : DECIMAL ;
+ c : LOGICO ;
+ d : CADENA 
 
 INICIO
 
-x := 33;
 
-SI(a<=b)ENTONCES
-    LEER a,b; 
-SI(a>=b) ENTONCES
-    MIENTRAS(b<a) HACER
-	LEER a,c
-    FIN_MIENTRAS
-SINO
-    ESCRIBIR a,d
-FIN_SI 
 
-SINO
-    ESCRIBIR a,b;
-MIENTRAS(b<a) HACER
-    LEER a,c
-FIN_MIENTRAS
-FIN_SI
+    SI (a<=b) ENTONCES
+	    LEER a,c;
+        SI (a > b) ENTONCES
+            MIENTRAS (b<a) HACER
+                LEER a,c
+            FIN_MIENTRAS
+        SINO
+            ESCRIBIR a,d
+        FIN_SI
+    SINO
+        ESCRIBIR a,d;
+        MIENTRAS (b<a) HACER
+            LEER a,c
+        FIN_MIENTRAS
+	FIN_SI
 FIN

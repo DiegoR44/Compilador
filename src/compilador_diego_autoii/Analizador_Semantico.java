@@ -16,14 +16,25 @@ import java.util.Stack;
 
 public class Analizador_Semantico{
     Stack<Integer> Inicial= new Stack<Integer>();
+    
     Stack<Integer> Invertida= new Stack<Integer>();
     Stack<Integer> Operadores= new Stack<Integer>();
     Stack<Integer> Salidas= new Stack<Integer>();
-    Stack<Integer> AuxiliarS= new Stack<Integer>();
+    Stack<Integer> AuxSalida= new Stack<Integer>();
+
+     Stack<Integer> ETI= new Stack<Integer>();//token
+    Stack<Integer> ET= new Stack<Integer>();//lexemas
+    Stack<Integer> ETO= new Stack<Integer>();//token
+
+    Stack<String> ELI= new Stack<String>();//
+    Stack<String> EL= new Stack<String>();
+    Stack<String> ELO= new Stack<String>();
     
     
+    Nodos_InfoPost Cabeza_infpost= null,pip,nodosip;
     Nodos_Variables cabeza_variable = null, p_variable, Nodos; 
     //lista de variables declaradas
+    
     public void insertarnodos_Variables(String xlexemas, int xtipo_token) {
       
         Nodos_Variables nodo_variable = new Nodos_Variables(xlexemas,xtipo_token);
@@ -59,28 +70,87 @@ public class Analizador_Semantico{
             p_variable = p_variable.sig;
         }
     }
-    
-    public void  Push_pilaEntrada(int xtoken){
+  public static int Jerarquias(int op) {
+        int prf = 9;
+        if ((op == 106) || (op == 107)) {
+            prf = 8;  //--> */
+        }
+        if ((op == 104) || (op == 105)) {
+            prf = 7;//--> +-
+        }
+        if ((op == 108) || (op == 109) || (op == 110) || (op == 111) || (op == 112) || (op == 113)) {
+            prf = 6;// relacionales
+        }
+        if ((op == 200)) {
+            prf = 5;//NOT
+        }
+        if ((op == 201) || (op == 202)) {
+            prf = 4;//AND OR
+        }
+        if ((op == 115)) {
+            prf = 3;//)
+        }
+        if ((op == 114)) {
+            prf = 2;//(
+        }
+        if ((op == 119)) {
+            prf = 1;//:= 
+        }
+        return prf;
+    }
+public void insertarPost(String xlexema, Integer xtoken) {
+            Nodos_InfoPost listaPost = new Nodos_InfoPost(xlexema, xtoken);
+        
+        if (Cabeza_infpost == null) {
+             Cabeza_infpost= listaPost;
+            pip = Cabeza_infpost;
+        } else {
+            pip.sig = listaPost;
+            pip = listaPost;
+        }    
+    }
+public void imprimirNodospol() {
+        nodosip = Cabeza_infpost;
+        System.out.println("LISTA POSTFIJA");
+        while (nodosip != null){
+
+                System.out.println("[ " + nodosip.lexema + "|" + nodosip.token+"]");
+           
+          nodosip= nodosip.sig;
+        }
+    }
+   
+
+
+
+
+
+
+
+
+    public void  Push_pilaInicial(int xtoken){
             Inicial.push(xtoken);
     }
-      public void  get_Pop_pilaEntrada(){
-            Inicial.pop();
+    
+  public void  Push_pilaSalidas(int xtoken){
+            Salidas.push(xtoken);
     }
+  
     
     public void  Push_pilaInvertida(int xtoken){
             Invertida.push(xtoken);
     }
-      public void  get_Pop_pilaInvertida(){
-            Invertida.pop();
-    }
+     
       public void  Push_pilaOperadores(int xtoken){
             Operadores.push(xtoken);
     }
-   public void  get_Pop_pilaOperadores(){
-            Operadores.pop();
+      
+      
+    public void  Push_pilaInicialToken(int xtoken){
+           ET.push(xtoken);
     }
-      public void  Peek_Operadores(){
-            Operadores.peek();
+     public void  Push_pilaInicial_Lexemas(String xlexemas){
+           EL.push(xlexemas);
     }
    
    

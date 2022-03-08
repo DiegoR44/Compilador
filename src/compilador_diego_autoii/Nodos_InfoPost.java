@@ -10,5 +10,17 @@ package compilador_diego_autoii;
  * @author DIEKO
  */
 public class Nodos_InfoPost {
+     String lexema;
+    int token;
+   
+    Nodos_InfoPost sig = null;
     
+    Nodos_InfoPost(String lexemasInPost, int tiposInPost){
+        this.lexema = lexemasInPost;
+        this.token = tiposInPost;
+    };
 }
+
+
+    
+

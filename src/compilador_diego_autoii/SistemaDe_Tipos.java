@@ -8,8 +8,8 @@ package compilador_diego_autoii;
 public class SistemaDe_Tipos {
     
     
-     
-     boolean Asingaciones[][]={
+    
+    boolean Asingaciones[][]={
             //          ENTERO   DECIMAL  STRING    LOGICO
             /*ENTERO*/  {true,   false,   false,    false},
             /*DECIMAL*/ {true,   true,    false,    false},
@@ -66,6 +66,5 @@ public class SistemaDe_Tipos {
             /*LOGICO*/  {false,  false,    false,    true}
 
     };
-
 
 }
