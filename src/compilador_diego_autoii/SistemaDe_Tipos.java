@@ -66,5 +66,9 @@ public class SistemaDe_Tipos {
             /*LOGICO*/  {false,  false,    false,    true}
 
     };
+    
+    
+    
+    
 
 }

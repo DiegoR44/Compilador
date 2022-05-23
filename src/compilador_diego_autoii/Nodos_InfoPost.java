@@ -12,7 +12,6 @@ package compilador_diego_autoii;
 public class Nodos_InfoPost {
      String lexema;
     int token;
-   
     Nodos_InfoPost sig = null;
     
     Nodos_InfoPost(String lexemasInPost, int tiposInPost){

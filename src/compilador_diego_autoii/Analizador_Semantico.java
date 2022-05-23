@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package compilador_diego_autoii;
+import java.util.ArrayList;
 import java.util.Stack;
 /**
  *
@@ -15,21 +16,31 @@ import java.util.Stack;
 import java.util.Stack;
 
 public class Analizador_Semantico{
+    ArrayList<String> PolishLexemas = new ArrayList<String>(); 
+    ArrayList<Integer> PolishTokens = new ArrayList<Integer>();  
+    Nodos p;
     Stack<Integer> Inicial= new Stack<Integer>();
-    
     Stack<Integer> Invertida= new Stack<Integer>();
     Stack<Integer> Operadores= new Stack<Integer>();
     Stack<Integer> Salidas= new Stack<Integer>();
     Stack<Integer> AuxSalida= new Stack<Integer>();
 
-     Stack<Integer> ETI= new Stack<Integer>();//token
-    Stack<Integer> ET= new Stack<Integer>();//lexemas
-    Stack<Integer> ETO= new Stack<Integer>();//token
+     Stack<Integer> ETokenI= new Stack<Integer>();//tokeninvertidos
+    Stack<Integer> EToken= new Stack<Integer>();//tokens
+    Stack<Integer> ETokenO= new Stack<Integer>();//tokenoperandos
 
-    Stack<String> ELI= new Stack<String>();//
-    Stack<String> EL= new Stack<String>();
-    Stack<String> ELO= new Stack<String>();
-    
+    Stack<String> ELexemasI= new Stack<String>();//
+    Stack<String> ELexemas= new Stack<String>();
+    Stack<String> ELexemasO= new Stack<String>();
+     
+    Nodos_InfoPost cabezaPol= null,pPol,rPol;
+
+
+    Stack<Integer> If= new Stack<Integer>();
+    Stack<Integer> While= new Stack<Integer>();
+
+int EtiquetaIf;
+int EtiquetaWhile;
     
     Nodos_InfoPost Cabeza_infpost= null,pip,nodosip;
     Nodos_Variables cabeza_variable = null, p_variable, Nodos; 
@@ -93,11 +104,13 @@ public class Analizador_Semantico{
         if ((op == 114)) {
             prf = 2;//(
         }
-        if ((op == 119)) {
-            prf = 1;//:= 
-        }
+        if ((op == 119) || (op == 215) || (op == 216)){prf = 1;}
         return prf;
     }
+  
+  
+
+  /*
 public void insertarPost(String xlexema, Integer xtoken) {
             Nodos_InfoPost listaPost = new Nodos_InfoPost(xlexema, xtoken);
         
@@ -109,6 +122,8 @@ public void insertarPost(String xlexema, Integer xtoken) {
             pip = listaPost;
         }    
     }
+  */
+/*
 public void imprimirNodospol() {
         nodosip = Cabeza_infpost;
         System.out.println("LISTA POSTFIJA");
@@ -119,14 +134,7 @@ public void imprimirNodospol() {
           nodosip= nodosip.sig;
         }
     }
-   
-
-
-
-
-
-
-
+*/
 
     public void  Push_pilaInicial(int xtoken){
             Inicial.push(xtoken);
@@ -144,16 +152,17 @@ public void imprimirNodospol() {
       public void  Push_pilaOperadores(int xtoken){
             Operadores.push(xtoken);
     }
-      
-      
-    public void  Push_pilaInicialToken(int xtoken){
-           ET.push(xtoken);
+    private void insertarNodoPol(String lexema, Integer token) {
+            Nodos_InfoPost NodoPol = new Nodos_InfoPost(lexema, token);
+        
+        if (cabezaPol == null) {
+            cabezaPol = NodoPol;
+            pPol = cabezaPol;
+        } else {
+            pPol.sig = NodoPol;
+            pPol = NodoPol;
+        }    
     }
-     public void  Push_pilaInicial_Lexemas(String xlexemas){
-           EL.push(xlexemas);
-    }
-   
-   
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_RESET = "\u001B[0m";
    

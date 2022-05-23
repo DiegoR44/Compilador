@@ -5,13 +5,15 @@ ALGORITMO diego () ES
  a : ENTERO ;
  b : DECIMAL ;
  c : LOGICO ;
- d : CADENA 
+ d : CADENA ;
+ x: LOGICO 
 
 INICIO
 
+d:= 'ola';
+a:= 5+5*10;
 
-
-    SI (a<=b) ENTONCES
+    SI (x AND c ) ENTONCES
 	    LEER a,c;
         SI (a > b) ENTONCES
             MIENTRAS (b<a) HACER
@@ -26,4 +28,5 @@ INICIO
             LEER a,c
         FIN_MIENTRAS
 	FIN_SI
+
 FIN

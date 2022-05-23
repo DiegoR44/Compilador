@@ -20,13 +20,13 @@ public class Analizador_lexico {
     String lexema = "";
     boolean errorEncontrado = false;
 
-    String archivo = "C:\\Users\\DIEGO CERVANTES\\OneDrive\\Documentos\\NetBeansProjectsu\\Compilador_Diego_AutoII\\src\\compilador_diego_autoii\\compilador.txt";
+    String archivo = "C:\\Users\\Dieko\\Desktop\\Respaldo\\Compilador_Diego_AutoII\\src\\compilador_diego_autoii\\compilador.txt";
 
     int matriz[][] = {
         //       l	    d	     _	 	  .     '	    +	      -	          *	     /	    >	     <	     =	     (	      )	      ,	     ;  	 :  	{ 	     }	    eb	    tab	    nl	    eof 	oc
-        /*0*/{1, 2, 500, 500, 5, 104, 105, 106, 107, 6, 7, 112, 114, 115, 116, 118, 8, 9, 500, 0, 0, 0, 0, 500
+        /*0*/{    1,       2,       500,         500,    5,        104,      105,       106,        107,    6,       7,     112,    114, 115, 116, 118, 8, 9, 500, 0, 0, 0, 0, 500
         },
-        /*1*/ {1, 1, 1, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
+        /*1*/ {   1,        1,        1, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100},
         /*2*/ {101, 2, 101, 3, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, 101
         },
         /*3*/ {502, 4, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502, 502,},
@@ -40,7 +40,7 @@ public class Analizador_lexico {
 
      
     String palReservadas[][] = {
-        //  0              1
+        //     0       1
         /*0*/{"NOT", "200"},
         /*1*/ {"AND", "201"},
         /*2*/ {"OR", "202"},
@@ -68,10 +68,11 @@ public class Analizador_lexico {
     
     
     String errores[][] = {
-        //  0              1
+        //          0               1
+        
         /*0*/{"Simbolo no valido", "500"},
         /*1*/ {"Se espera cierre de comentario", "501"},
-        /*2*/ {"Se espera un digito despues del punto", "502"},
+        /*2*/ {"Se espera un digito", "502"},
         /*3*/ {"Se espera cierre de cadena", "503"},};
 
     RandomAccessFile file = null;
@@ -212,8 +213,7 @@ public class Analizador_lexico {
         if (caracter != -1 && valorMT >= 500) {
             for (String[] errore : errores) {
                 if (valorMT == Integer.valueOf(errore[1])) {
-                    System.out.println(ANSI_RED+"ERROR: " + errore[0] + " error " + valorMT + " caracter " + (char) caracter + " en el renglon  " 
-                            + numRenglon+ANSI_RESET);
+                    System.out.println(ANSI_RED+"ERROR:"+errore[0]+"error"+valorMT+"caracter"+(char)caracter+"en el renglon" +numRenglon+ANSI_RESET);
                 }
             }
             errorEncontrado = true;

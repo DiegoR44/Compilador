@@ -15,6 +15,8 @@ public class Analizador_sintactico extends Analizador_Semantico {
 
     Nodos p;
 
+    String lexemaError;
+
     boolean errorEncontrado = false;
     //String nombre_ID;
 
@@ -43,23 +45,24 @@ public class Analizador_sintactico extends Analizador_Semantico {
         /*15*/ {"Se espera declaracion de variable", "515"},
         /*16*/ {"Se espera FIN_MIENTRAS", "516"},
         {"Se esperaba asignacion", "600"},
-      {"Se esperaba algo que Escribir", "601"},
-    };
+        {"Se esperaba algo que Escribir", "601"},};
 
     String erroresSemanticos[][] = {
-        /*17*/{"El nombre de la variable es igual al ID", "517"},
-        /*18*/ {"El nombre de la variable es repetida", "518"},
-        /*19*/ {"La variable no esta asignada", "519"},
-        /*20*/ {"Incompatibilidad de datos", "520"}
+        /*17*/{"No puedes declarar una variable con el nombre del algoritmo", "517"},
+        /*18*/ {"Variable repetida", "518"},
+        /*19*/ {"Variable no asignada", "519"},
+        /*20*/ {"Incompatabilidad de tipos", "520"}
 
     };
-   SistemaDe_Tipos Tipos= new SistemaDe_Tipos();
+    SistemaDe_Tipos Tipos = new SistemaDe_Tipos();
+
     private void imprimirMensajeError_semantico(int num_error) {
 
         for (String[] errore : erroresSemanticos) {
             if (num_error == Integer.valueOf(errore[1])) {
-                System.out.println(ANSI_RED + " " + "ERROR: " + errore[0] + " (" + p.lexema + ") " + "/ Nº. ERROR: " + num_error + ":  " + "EN LA LINEA: " + " " + p.linea + ANSI_RESET);
+                System.out.println(ANSI_RED + " " + "ERROR: " + errore[0] + " (" + lexemaError + ") " + "/ Nº. ERROR: " + num_error + ":  " + "EN LA LINEA: " + " " + p.linea + ANSI_RESET);
             }
+
         }
         errorEncontrado = true;
 
@@ -96,8 +99,11 @@ public class Analizador_sintactico extends Analizador_Semantico {
                                         p = p.sig;
                                         imprimirLista_Variables();
                                         Accion();
-                                        imprimirNodospol();
-
+                                        System.out.println("Tokens : "+PolishTokens+p.linea+" \n Lexemas: "+
+                                                PolishLexemas+p.linea);
+                                        
+                                         
+                                       
                                         if (p.token == 214) { //FIN
                                             break;
                                         } else {
@@ -134,35 +140,36 @@ public class Analizador_sintactico extends Analizador_Semantico {
             errorEncontrado = true;
         }
     }
+
     private void Accion() {
         switch (p.token) {
             case 100:
                 Validar_variable_noDeclarada();
-                 Push_pilaInicial(p.token);
-                 Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-                 
-            
+                Push_pilaInicial(p.token);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
+
                 p = p.sig;
                 Asignacion();
                 break;
             case 215:
-                Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
                 p = p.sig;
                 Leer();
-                listaPostfija();
+                Codigo_IntermedioPolish();
                 if (p.token == 118) {
                     p = p.sig;
                     Accion();
                 }
                 break;
             case 216:
-                Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
+
                 p = p.sig;
                 Escribir();
-                listaPostfija();
+                Codigo_IntermedioPolish();
                 if (p.token == 118) {
                     p = p.sig;
                     Accion();
@@ -190,13 +197,13 @@ public class Analizador_sintactico extends Analizador_Semantico {
 
     private void Asignacion() {
         if (p.token == 119) {//:=
-              Push_pilaInicial(p.token);
-              Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
+            Push_pilaInicial(p.token);
+            EToken.push(p.token);
+            ELexemas.push(p.lexema);
             p = p.sig;
             exprecion_numerica();
-              Evaluar_Infijo_Post();
-              listaPostfija();
+            Evaluar_Infijo_Post();
+            Codigo_IntermedioPolish();
             if (p.token == 118) {//;
                 p = p.sig;
                 Accion();
@@ -210,18 +217,26 @@ public class Analizador_sintactico extends Analizador_Semantico {
     }
 
     private void Mientras() {
-
+       EtiquetaWhile++;
+       While.push(EtiquetaWhile);
+       
         Exp_logica();
-         Evaluar_Infijo_Post();
-         listaPostfija();
-
+        Evaluar_Infijo_Post();
+       PolishLexemas.add("D");
+       PolishTokens.add(While.peek(),1);
+        Codigo_IntermedioPolish();
+        PolishLexemas.add("Brf C");
+       PolishTokens.add(While.peek(),0);
         if (p.token == 210) {
             p = p.sig;
 
             Accion();
-
+            PolishLexemas.add("Brf D");
+       PolishTokens.add(While.peek(),0);
             if (p.token == 211) {
-
+               PolishLexemas.add(" C");
+       PolishTokens.add(While.peek(),1);
+               While.pop();
                 p = p.sig;
             } else {
                 imprimirMensajeError(516);
@@ -230,23 +245,30 @@ public class Analizador_sintactico extends Analizador_Semantico {
     }
 
     private void Si() {
-
+            EtiquetaIf++;
+       If.push(EtiquetaIf);
         p = p.sig;
-
+        lexemaError = p.lexema;
         Exp_logica();
-         Evaluar_Infijo_Post();
-         listaPostfija();
+        Evaluar_Infijo_Post();
+        Codigo_IntermedioPolish();
+       PolishLexemas.add("Brf A");
+       PolishTokens.add(If.peek(),0);
         if (p.token == 206) { //ENTONCES
             p = p.sig;
             Accion();
-
+           PolishLexemas.add("Bri B");
+       PolishTokens.add(If.peek(),0);
             if (p.token == 208) { //SINO
                 p = p.sig;
-
+               PolishLexemas.add("A");
+       PolishTokens.add(If.peek(),1);
                 Accion();
             }
             if (p.token == 207) { //FIN_SI
-
+               PolishLexemas.add("B");
+       PolishTokens.add(If.peek(),1);
+       If.pop();
                 p = p.sig;
             } else {
                 imprimirMensajeError(511);
@@ -259,26 +281,33 @@ public class Analizador_sintactico extends Analizador_Semantico {
     private void Exp_logica() {
         switch (p.token) {
             case 114://(
+
                 p = p.sig;
+
                 Exp_logica();
+
                 if (p.token == 115) {//)
                     p = p.sig;
                     Exp_logica_1();
                 }
                 break;
             case 200://NOT
-                  Push_pilaInicial(p.token);
-                  Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
+
+                Push_pilaInicial(p.token);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
                 p = p.sig;
                 Exp_logica();
                 Exp_logica_1();
                 break;
             case 100://identificador
+                lexemaError = p.lexema;
                 if ((p.sig.token == 108) || (p.sig.token == 109) || (p.sig.token == 110)
                         || (p.sig.token == 111) || (p.sig.token == 112) || (p.sig.token == 113)) {//relacionales
+
                     exprecion_relacional();
                 } else {
+
                     Exp_logica_1();
                 }
                 break;
@@ -300,23 +329,23 @@ public class Analizador_sintactico extends Analizador_Semantico {
     private void exprecion_relacional() {
         exprecion_numerica();
         if (p.token >= 108 && p.token <= 113) {//relacionales
-               Push_pilaInicial(p.token);
-               Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
+            Push_pilaInicial(p.token);
+            EToken.push(p.token);
+            ELexemas.push(p.lexema);
             p = p.sig;
             exprecion_numerica();
         } else {
             imprimirMensajeError(512);
         }
+
     }
 
     private void Exp_logica_1() {
+        exprecion_numerica();
         if (p.token >= 201 && p.token <= 202) {//AND, OR
-              Push_pilaInicial(p.token);
-              Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
+            Push_pilaInicial(p.token);
+            EToken.push(p.token);
+            ELexemas.push(p.lexema);
 
             p = p.sig;
 
@@ -327,24 +356,24 @@ public class Analizador_sintactico extends Analizador_Semantico {
 
     private void Escribir() {
         if (p.token == 100) {
-                Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
+            EToken.push(p.token);
+            ELexemas.push(p.lexema);
             p = p.sig;
             if (p.token == 116) {
                 p = p.sig;
 
                 Escribir();
             }
-        }else{
+        } else {
             imprimirMensajeError(601);
-        
+
         }
     }
 
     private void Leer() {
         if (p.token == 100) {
-            Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
+            EToken.push(p.token);
+            ELexemas.push(p.lexema);
 
             p = p.sig;
             if (p.token == 116) {
@@ -358,79 +387,68 @@ public class Analizador_sintactico extends Analizador_Semantico {
     private void exprecion_numerica() {
         switch (p.token) {
             case 114:
-                 Push_pilaInicial(p.token);
-                 Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
+                Push_pilaInicial(p.token);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
 
                 exprecion_numerica();
                 if (p.token == 115) {
-                      Push_pilaInicial(p.token);
-                      Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
+                    Push_pilaInicial(p.token);
+                    EToken.push(p.token);
+                    ELexemas.push(p.lexema);
 
                     exprecion_numerica1();
                 }
                 break;
             case 105://-
-                  Push_pilaInicial(p.token);
-                  Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
+                Push_pilaInicial(p.token);
 
-
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
                 exprecion_numerica();
                 exprecion_numerica1();
                 break;
             case 100:
                 Validar_variable_noDeclarada();
-                  Push_pilaInicial(p.token);
-                  Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
-
+                Push_pilaInicial(p.token);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
                 p = p.sig;
                 exprecion_numerica1();
 
                 break;
             case 203://TRUE
-                 Push_pilaInicial(221);
-                 Push_pilaInicialToken(221);
-                 Push_pilaInicial_Lexemas(p.lexema);
+                Push_pilaInicial(221);
+                EToken.push(221);
+                ELexemas.push(p.lexema);
                 p = p.sig;
                 Exp_logica_1();
                 break;
             case 204://FALSE
-              Push_pilaInicial(221);
-              Push_pilaInicialToken(221);
-                 Push_pilaInicial_Lexemas(p.lexema);
+                Push_pilaInicial(221);
+                EToken.push(221);
+                ELexemas.push(p.lexema);
                 p = p.sig;
                 Exp_logica_1();
                 break;
             case 103:
-                  Push_pilaInicial(p.token);
-                  Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
-
+                Push_pilaInicial(p.token);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
                 p = p.sig;
                 exprecion_numerica1();
                 break;
             case 102:
-                 Push_pilaInicial(p.token);
-                 Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
-
+                Push_pilaInicial(p.token);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
                 p = p.sig;
                 exprecion_numerica1();
                 break;
             case 101:
-                  Push_pilaInicial(p.token);
-                  Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
-
+                Push_pilaInicial(p.token);
+                EToken.push(p.token);
+                ELexemas.push(p.lexema);
                 p = p.sig;
                 exprecion_numerica1();
                 break;
@@ -441,11 +459,9 @@ public class Analizador_sintactico extends Analizador_Semantico {
 
     private void exprecion_numerica1() {
         if (p.token >= 104 && p.token <= 107) {
-             Push_pilaInicial(p.token);
-             Push_pilaInicialToken(p.token);
-                 Push_pilaInicial_Lexemas(p.lexema);
-
-
+            Push_pilaInicial(p.token);
+             EToken.push(p.token);
+            ELexemas.push(p.lexema);
             p = p.sig;
             exprecion_numerica();
             exprecion_numerica1();
@@ -512,27 +528,32 @@ public class Analizador_sintactico extends Analizador_Semantico {
                 break;
         }
     }
-private void Evaluar_Infijo_Post() {
+
+    private void Evaluar_Infijo_Post() {
         Invertida.push(115);
-        while (!Inicial.empty()){
+       
+        while (!Inicial.empty()) {
             Push_pilaInvertida(Inicial.pop());
         }
         Push_pilaInvertida(114);
+        
 
         while (!Invertida.empty()) {
             switch (Jerarquias(Invertida.peek())) {
                 case 1: //:=
                     Push_pilaOperadores(Invertida.pop());
-                   
+
                     break;
                 case 2: //(
-                   Push_pilaOperadores(Invertida.pop());
+                    Push_pilaOperadores(Invertida.pop());
                     break;
                 case 3: //)
-                    while (!Operadores.peek().equals(114)){
-                        Push_pilaSalidas(Operadores.pop());                  
+                    while (!Operadores.peek().equals(114)) {
+                        Push_pilaSalidas(Operadores.pop());
+                        
                     }
                     Operadores.pop();
+
                     Invertida.pop();
                     break;
                 case 4: //AND OR
@@ -544,101 +565,41 @@ private void Evaluar_Infijo_Post() {
                 case 7: //+-
 
                 case 8: //*/
-                    while (Jerarquias(Operadores.peek()) >= Jerarquias(Invertida.peek())){
+                    while (Jerarquias(Operadores.peek()) >= Jerarquias(Invertida.peek())) {
                         Push_pilaSalidas(Operadores.pop());
+                        
                     }
-                   Push_pilaOperadores(Invertida.pop());
+                    Push_pilaOperadores(Invertida.pop());
                     break;
                 case 9: //token
                     Push_pilaSalidas(Invertida.pop());
-                    break;
-            }
-        }
-      
-    }
-     
-private void listaPostfija() {
-        ETI.push(115);
-        ELI.push(")");
-        while (!ET.empty()){
-            ETI.push(ET.pop());
-            ELI.push(EL.pop());
-        }
-        ETI.push(114);
-        ELI.push("(");
-
-        while (!ETI.empty()) {
-            switch (Jerarquias(ETI.peek())) {
-                case 1: //:=
-                    ETO.push(ETI.pop());
-                    ELO.push(ELI.pop());
-
-                    break;
-                case 2: //(
-                    ETO.push(ETI.pop());
-                    ELO.push(ELI.pop());
-                    break;
-                case 3: //)
-                    while (!ETO.peek().equals(114)){
-                 
-                    insertarPost(ELO.pop(),ETO.pop());
-                       
-
-                    }
-
-                    ETO.pop();
-                    ELO.pop();
-                    ETI.pop();
-                    ELI.pop();
-                    break;
-                case 4: //AND OR
-
-                case 5://NOT
-
-                case 6: //Relacionales
-
-                case 7: //+-
-
-                case 8: //*/
-                    while (Jerarquias(ETO.peek()) >= Jerarquias(ETI.peek())){
-                        
-                    insertarPost(ELO.pop(),ETO.pop());
-                   
-                    }
-                    ETO.push(ETI.pop());
-                    ELO.push(ELI.pop());
-
-                    break;
-                case 9: //token
-                     
-                    insertarPost(ELI.pop(),ETI.pop());
                     
                     break;
             }
         }
+        Validar_SistemaTipos();
+        Salidas.removeAllElements();
         
     }
 
-
-
-   public void Validar_SistemaTipos() {
-        boolean error= false;
+    public void Validar_SistemaTipos() {
+        boolean error = false;
         int columna = 0;
         int fila = 0;
         int operando1 = 0;
         int operando2 = 0;
-           
-        for(int i=0;i<Salidas.size();i++){
-            int op=Salidas.get(i);
-            if((op==104)||(op==105)||(op==106)||(op==107)||(op==108)||
-                    (op==109)||(op==110)||(op==111)||(op==112)||(op==113)|| (op==119)||  //+, -, *, /, :=, ,< ,>, <=, >=, =, <>, and, or, not
-                    (op==200)||(op==201)||(op==202)) {
-                if(op==200){
-                    operando1=AuxSalida.peek();
-                }
-                else{
-                    operando1=AuxSalida.pop();
-                    operando2=AuxSalida.pop();
+
+        for (int i = 0; i < Salidas.size(); i++) {
+            int op = Salidas.get(i);
+            if ((op == 104) || (op == 105) || (op == 106) || (op == 107) || (op == 108)
+                    || (op == 109) || (op == 110) || (op == 111) || (op == 112) || (op == 113) || (op == 119)
+                    || //+, -, *, /, :=, ,< ,>, <=, >=, =, <>, and, or, not
+                    (op == 200) || (op == 201) || (op == 202)) {
+                if (op == 200) {
+                    operando1 = AuxSalida.peek();
+                } else {
+                    operando1 = AuxSalida.pop();
+                    operando2 = AuxSalida.pop();
                 }
                 switch (operando1) {
                     case 101:
@@ -669,42 +630,38 @@ private void listaPostfija() {
                         fila = 3;
                         break;
                 }
-                switch (op){
+                switch (op) {
                     case 104:
-                        if(Tipos.Sumas[fila][columna]==0){
-                            error=true;
-                        }
-                        else{
+                        if (Tipos.Sumas[fila][columna] == 0) {
+                            error = true;
+                        } else {
                             AuxSalida.push(Tipos.Sumas[fila][columna]);
                         }
                         break;
                     case 105:
-                        if(Tipos.Resta_Multiplicacion[fila][columna]==0){
-                            error=true;
-                        }
-                        else{
+                        if (Tipos.Resta_Multiplicacion[fila][columna] == 0) {
+                            error = true;
+                        } else {
                             AuxSalida.push(Tipos.Resta_Multiplicacion[fila][columna]);
                         }
                         break;
                     case 106:
-                        if(Tipos.Resta_Multiplicacion[fila][columna]==0){
-                            error=true;
-                        }
-                        else{
+                        if (Tipos.Resta_Multiplicacion[fila][columna] == 0) {
+                            error = true;
+                        } else {
                             AuxSalida.push(Tipos.Resta_Multiplicacion[fila][columna]);
                         }
                         break;
                     case 107:
-                        if(Tipos.Divisiones[fila][columna]==0){
-                            error=true;
-                        }
-                        else{
+                        if (Tipos.Divisiones[fila][columna] == 0) {
+                            error = true;
+                        } else {
                             AuxSalida.push(Tipos.Divisiones[fila][columna]);
                         }
                         break;
                     case 119:
-                        if(Tipos.Asingaciones[fila][columna]==false){
-                            error=true;
+                        if (Tipos.Asingaciones[fila][columna] == false) {
+                            error = true;
                         }
 
                         break;
@@ -712,52 +669,175 @@ private void listaPostfija() {
                     case 108:
                     case 109:
                     case 111:
-                        if(Tipos.Relacionales[fila][columna]==0){
-                            error=true;
-                        }
-                        else{
+                        if (Tipos.Relacionales[fila][columna] == 0) {
+                            error = true;
+                        } else {
                             AuxSalida.push(Tipos.Relacionales[fila][columna]);
                         }
                         break;
                     case 112:
                     case 113:
-                        if(Tipos.Igual_Diferente[fila][columna]==0){
-                            error=true;
-                        }
-                        else{
+                        if (Tipos.Igual_Diferente[fila][columna] == 0) {
+                            error = true;
+                        } else {
                             AuxSalida.push(Tipos.Igual_Diferente[fila][columna]);
                         }
                         break;
                     case 201://AND OR
                     case 202:
-                        if(Tipos.Logicos[fila][columna]==false){
-                            error=true;
+                        if (Tipos.Logicos[fila][columna] == false) {
+                            error = true;
                         } else {
                             AuxSalida.push(221);
                         }
                         break;
 
                     case 200:
-                        if(operando1!=221){
-                            error=true;
+                        if (operando1 != 221) {
+                            error = true;
                         }
                         break;
                 }
-            }
-            else{
+            } else {
                 AuxSalida.push(op);
             }
-            if(error == true){
-              imprimirMensajeError_semantico(520);
+            if (error == true) {
+                imprimirMensajeError_semantico(520);
                 break;
             }
 
         }
 
     }
-      
+public  void  Codigo_IntermedioPolish() {
+        ETokenI.push(115);
+        ELexemasI.push(")");
+        while (!EToken.empty()){
+            ETokenI.push(EToken.pop());
+            ELexemasI.push(ELexemas.pop());
+        }
+        ETokenI.push(114);
+        ELexemasI.push("(");
 
+        while (!ETokenI.empty()) {
+            
+            switch (Jerarquias(ETokenI.peek())) {
+                case 1: //:=
+                    ETokenO.push(ETokenI.pop());
+                    ELexemasO.push(ELexemasI.pop());
 
+                    break;
+                case 2: //(
+                    ETokenO.push(ETokenI.pop());
+                    ELexemasO.push(ELexemasI.pop());
+                    break;
+                case 3: //)
+                    while (!ETokenO.peek().equals(114)){
+                    //insertarNodoPol(ELexemasO.pop(),ETokenO.pop());
+                    
+                    PolishLexemas.add(ELexemasO.pop());
+                        
+                    PolishTokens.add(ETokenO.pop());
+                        
+                    }
+                    ETokenO.pop();
+                    ELexemasO.pop();
+                    ETokenI.pop();
+                    ELexemasI.pop();
+                    break;
+                case 4: //AND OR
+
+                case 5://NOT
+
+                case 6: //Relacionales
+
+                case 7: //+-
+
+                case 8: //*/
+                    while (Jerarquias(ETokenO.peek()) >= Jerarquias(ETokenI.peek())){
+                   // insertarNodoPol(ELexemasO.pop(),ETokenO.pop());
+                    PolishLexemas.add(ELexemasO.pop());
+                    PolishTokens.add(ETokenO.pop());
+                    }
+                    ETokenO.push(ETokenI.pop());
+                    ELexemasO.push(ELexemasI.pop());
+
+                    break;
+                case 9: //token
+                    System.out.println("aqui por que:"+ p.token+p.lexema);
+                   // insertarNodoPol(ELexemasI.pop(),ETokenI.pop());
+                    PolishLexemas.add(ELexemasI.pop());
+                    PolishTokens.add(ETokenI.pop());
+                    
+                    break;
+            }
+        }
+        
+        
+    }
+    /*
+    private void listaPostfija() {
+        ETI.push(115);
+        ELI.push(")");
+        while (!ET.empty()) {
+            ETI.push(ET.pop());
+            ELI.push(EL.pop());
+        }
+        ETI.push(114);
+        ELI.push("(");
+
+        while (!ETI.empty()) {
+            switch (Jerarquias(ETI.peek())) {
+                case 1:
+                    ETO.push(ETI.pop());
+                    ELO.push(ELI.pop());
+
+                    break;
+                case 2: 
+                    ETO.push(ETI.pop());
+                    ELO.push(ELI.pop());
+                    break;
+                case 3: 
+                    while (!ETO.peek().equals(114)) {
+
+                        insertarPost(ELO.pop(), ETO.pop());
+
+                    }
+
+                    ETO.pop();
+                    ELO.pop();
+                    ETI.pop();
+                    ELI.pop();
+                    break;
+                case 4: 
+
+                case 5:
+
+                case 6: 
+
+                case 7: 
+
+                case 8:
+                    while (Jerarquias(ETO.peek()) >= Jerarquias(ETI.peek())) {
+
+                        insertarPost(ELO.pop(), ETO.pop());
+
+                    }
+                    ETO.push(ETI.pop());
+                    ELO.push(ELI.pop());
+
+                    break;
+                case 9: 
+
+                    insertarPost(ELI.pop(), ETI.pop());
+
+                    break;
+            }
+        }
+
+        Validar_SistemaTipos();
+    }
+     */
     public void Validar_variableRepetida() {
         Nodos = cabeza_variable;
         while (Nodos != null) {
