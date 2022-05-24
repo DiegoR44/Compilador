@@ -16,8 +16,11 @@ import java.util.Stack;
 import java.util.Stack;
 
 public class Analizador_Semantico{
-    ArrayList<String> PolishLexemas = new ArrayList<String>(); 
-    ArrayList<Integer> PolishTokens = new ArrayList<Integer>();  
+  
+    ArrayList<ListaObjPolish> PolishLista = new ArrayList<>();  
+    
+
+    
     Nodos p;
     Stack<Integer> Inicial= new Stack<Integer>();
     Stack<Integer> Invertida= new Stack<Integer>();
@@ -33,16 +36,12 @@ public class Analizador_Semantico{
     Stack<String> ELexemas= new Stack<String>();
     Stack<String> ELexemasO= new Stack<String>();
      
-    Nodos_InfoPost cabezaPol= null,pPol,rPol;
+    ListaObjPolish cabezaPol= null,pPol,rPol;
 
 
-    Stack<Integer> If= new Stack<Integer>();
-    Stack<Integer> While= new Stack<Integer>();
-
-int EtiquetaIf;
-int EtiquetaWhile;
     
-    Nodos_InfoPost Cabeza_infpost= null,pip,nodosip;
+    
+    
     Nodos_Variables cabeza_variable = null, p_variable, Nodos; 
     //lista de variables declaradas
     
@@ -152,8 +151,9 @@ public void imprimirNodospol() {
       public void  Push_pilaOperadores(int xtoken){
             Operadores.push(xtoken);
     }
-    private void insertarNodoPol(String lexema, Integer token) {
-            Nodos_InfoPost NodoPol = new Nodos_InfoPost(lexema, token);
+      
+    public  void insertarNodoPol(String xlexema, Integer xtoken) {
+           ListaObjPolish NodoPol = new ListaObjPolish(xlexema, xtoken);
         
         if (cabezaPol == null) {
             cabezaPol = NodoPol;
@@ -162,6 +162,15 @@ public void imprimirNodospol() {
             pPol.sig = NodoPol;
             pPol = NodoPol;
         }    
+    }
+    public void imprimirNodospol() {
+       rPol=cabezaPol;
+        while (rPol != null){
+
+                System.out.println("[ Lexema : " + rPol.lexema_polish + "| Token: " + rPol.token+"]");
+           
+          rPol= rPol.sig;
+        }
     }
     public static final String ANSI_RED = "\u001B[31m";
     public static final String ANSI_RESET = "\u001B[0m";

@@ -16,10 +16,13 @@ public class Analizador_sintactico extends Analizador_Semantico {
     Nodos p;
 
     String lexemaError;
-
+    int EtiquetaIf;
+    int EtiquetaWhile;
     boolean errorEncontrado = false;
     //String nombre_ID;
 
+    Stack<Integer> If= new Stack<Integer>();
+    Stack<Integer> While= new Stack<Integer>();
     String lexemaAux;
 
     int tipo;
@@ -99,11 +102,7 @@ public class Analizador_sintactico extends Analizador_Semantico {
                                         p = p.sig;
                                         imprimirLista_Variables();
                                         Accion();
-                                        System.out.println("Tokens : "+PolishTokens+p.linea+" \n Lexemas: "+
-                                                PolishLexemas+p.linea);
-                                        
-                                         
-                                       
+                                        imprimirNodospol();
                                         if (p.token == 214) { //FIN
                                             break;
                                         } else {
@@ -217,26 +216,25 @@ public class Analizador_sintactico extends Analizador_Semantico {
     }
 
     private void Mientras() {
-       EtiquetaWhile++;
-       While.push(EtiquetaWhile);
-       
+        EtiquetaWhile++;
+        While.push(EtiquetaWhile);
         Exp_logica();
         Evaluar_Infijo_Post();
-       PolishLexemas.add("D");
-       PolishTokens.add(While.peek(),1);
+        insertarNodoPol("D"+(While.peek()),600);
+       
         Codigo_IntermedioPolish();
-        PolishLexemas.add("Brf C");
-       PolishTokens.add(While.peek(),0);
+        insertarNodoPol("Brf C"+(While.peek()),0);
+        
         if (p.token == 210) {
             p = p.sig;
 
             Accion();
-            PolishLexemas.add("Brf D");
-       PolishTokens.add(While.peek(),0);
+          insertarNodoPol("Bri D"+(While.peek()),0);
+            
             if (p.token == 211) {
-               PolishLexemas.add(" C");
-       PolishTokens.add(While.peek(),1);
-               While.pop();
+               insertarNodoPol("C"+(While.peek()),600);
+                
+                While.pop();
                 p = p.sig;
             } else {
                 imprimirMensajeError(516);
@@ -245,30 +243,30 @@ public class Analizador_sintactico extends Analizador_Semantico {
     }
 
     private void Si() {
-            EtiquetaIf++;
-       If.push(EtiquetaIf);
+        EtiquetaIf++;
+        If.push(EtiquetaIf);
         p = p.sig;
         lexemaError = p.lexema;
         Exp_logica();
         Evaluar_Infijo_Post();
         Codigo_IntermedioPolish();
-       PolishLexemas.add("Brf A");
-       PolishTokens.add(If.peek(),0);
+      insertarNodoPol("Brf A"+(If.peek()),0);
+        
         if (p.token == 206) { //ENTONCES
             p = p.sig;
             Accion();
-           PolishLexemas.add("Bri B");
-       PolishTokens.add(If.peek(),0);
+            insertarNodoPol("Bri B"+(If.peek()),0);
+            
             if (p.token == 208) { //SINO
                 p = p.sig;
-               PolishLexemas.add("A");
-       PolishTokens.add(If.peek(),1);
+                insertarNodoPol("A"+(If.peek()),600);
+            
                 Accion();
             }
             if (p.token == 207) { //FIN_SI
-               PolishLexemas.add("B");
-       PolishTokens.add(If.peek(),1);
-       If.pop();
+              insertarNodoPol("B"+(If.peek()),0);
+              
+                If.pop();
                 p = p.sig;
             } else {
                 imprimirMensajeError(511);
@@ -460,7 +458,7 @@ public class Analizador_sintactico extends Analizador_Semantico {
     private void exprecion_numerica1() {
         if (p.token >= 104 && p.token <= 107) {
             Push_pilaInicial(p.token);
-             EToken.push(p.token);
+            EToken.push(p.token);
             ELexemas.push(p.lexema);
             p = p.sig;
             exprecion_numerica();
@@ -531,12 +529,11 @@ public class Analizador_sintactico extends Analizador_Semantico {
 
     private void Evaluar_Infijo_Post() {
         Invertida.push(115);
-       
+
         while (!Inicial.empty()) {
             Push_pilaInvertida(Inicial.pop());
         }
         Push_pilaInvertida(114);
-        
 
         while (!Invertida.empty()) {
             switch (Jerarquias(Invertida.peek())) {
@@ -550,7 +547,7 @@ public class Analizador_sintactico extends Analizador_Semantico {
                 case 3: //)
                     while (!Operadores.peek().equals(114)) {
                         Push_pilaSalidas(Operadores.pop());
-                        
+
                     }
                     Operadores.pop();
 
@@ -567,19 +564,19 @@ public class Analizador_sintactico extends Analizador_Semantico {
                 case 8: //*/
                     while (Jerarquias(Operadores.peek()) >= Jerarquias(Invertida.peek())) {
                         Push_pilaSalidas(Operadores.pop());
-                        
+
                     }
                     Push_pilaOperadores(Invertida.pop());
                     break;
                 case 9: //token
                     Push_pilaSalidas(Invertida.pop());
-                    
+
                     break;
             }
         }
         Validar_SistemaTipos();
         Salidas.removeAllElements();
-        
+
     }
 
     public void Validar_SistemaTipos() {
@@ -709,10 +706,11 @@ public class Analizador_sintactico extends Analizador_Semantico {
         }
 
     }
-public  void  Codigo_IntermedioPolish() {
+
+    public void Codigo_IntermedioPolish() {
         ETokenI.push(115);
         ELexemasI.push(")");
-        while (!EToken.empty()){
+        while (!EToken.empty()) {
             ETokenI.push(EToken.pop());
             ELexemasI.push(ELexemas.pop());
         }
@@ -720,7 +718,7 @@ public  void  Codigo_IntermedioPolish() {
         ELexemasI.push("(");
 
         while (!ETokenI.empty()) {
-            
+
             switch (Jerarquias(ETokenI.peek())) {
                 case 1: //:=
                     ETokenO.push(ETokenI.pop());
@@ -732,13 +730,10 @@ public  void  Codigo_IntermedioPolish() {
                     ELexemasO.push(ELexemasI.pop());
                     break;
                 case 3: //)
-                    while (!ETokenO.peek().equals(114)){
-                    //insertarNodoPol(ELexemasO.pop(),ETokenO.pop());
-                    
-                    PolishLexemas.add(ELexemasO.pop());
-                        
-                    PolishTokens.add(ETokenO.pop());
-                        
+                    while (!ETokenO.peek().equals(114)) {
+                       insertarNodoPol(ELexemasO.pop(),ETokenO.pop());
+
+                      
                     }
                     ETokenO.pop();
                     ELexemasO.pop();
@@ -754,27 +749,28 @@ public  void  Codigo_IntermedioPolish() {
                 case 7: //+-
 
                 case 8: //*/
-                    while (Jerarquias(ETokenO.peek()) >= Jerarquias(ETokenI.peek())){
-                   // insertarNodoPol(ELexemasO.pop(),ETokenO.pop());
-                    PolishLexemas.add(ELexemasO.pop());
-                    PolishTokens.add(ETokenO.pop());
+                    while (Jerarquias(ETokenO.peek()) >= Jerarquias(ETokenI.peek())) {
+                        insertarNodoPol(ELexemasO.pop(),ETokenO.pop());
+                      
+                        //PolishLista.add(Integer.valueOf(ELexemasO.pop()),String.valueOf(ETokenO.pop()));
                     }
                     ETokenO.push(ETokenI.pop());
                     ELexemasO.push(ELexemasI.pop());
 
                     break;
                 case 9: //token
-                    System.out.println("aqui por que:"+ p.token+p.lexema);
-                   // insertarNodoPol(ELexemasI.pop(),ETokenI.pop());
-                    PolishLexemas.add(ELexemasI.pop());
-                    PolishTokens.add(ETokenI.pop());
-                    
+                    //System.out.println("aqui por que:"+ p.token+p.lexema);
+                     
+                    insertarNodoPol(ELexemasI.pop(),ETokenI.pop());
+                  
+                   
+
                     break;
             }
         }
-        
-        
+
     }
+
     /*
     private void listaPostfija() {
         ETI.push(115);

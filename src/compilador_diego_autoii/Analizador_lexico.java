@@ -213,7 +213,7 @@ public class Analizador_lexico {
         if (caracter != -1 && valorMT >= 500) {
             for (String[] errore : errores) {
                 if (valorMT == Integer.valueOf(errore[1])) {
-                    System.out.println(ANSI_RED+"ERROR:"+errore[0]+"error"+valorMT+"caracter"+(char)caracter+"en el renglon" +numRenglon+ANSI_RESET);
+                    System.out.println(ANSI_RED+"ERROR:"+errore[0]+"error"+valorMT+"caracter"+caracter+"en el renglon" +numRenglon+ANSI_RESET);
                 }
             }
             errorEncontrado = true;
