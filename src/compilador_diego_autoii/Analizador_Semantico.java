@@ -17,10 +17,6 @@ import java.util.Stack;
 
 public class Analizador_Semantico{
   
-    ArrayList<ListaObjPolish> PolishLista = new ArrayList<>();  
-    
-
-    
     Nodos p;
     Stack<Integer> Inicial= new Stack<Integer>();
     Stack<Integer> Invertida= new Stack<Integer>();
@@ -37,10 +33,6 @@ public class Analizador_Semantico{
     Stack<String> ELexemasO= new Stack<String>();
      
     ListaObjPolish cabezaPol= null,pPol,rPol;
-
-
-    
-    
     
     Nodos_Variables cabeza_variable = null, p_variable, Nodos; 
     //lista de variables declaradas
@@ -103,38 +95,10 @@ public class Analizador_Semantico{
         if ((op == 114)) {
             prf = 2;//(
         }
-        if ((op == 119) || (op == 215) || (op == 216)){prf = 1;}
+        if ((op == 119) || (op == 215) || (op == 216)){prf = 1;} 
         return prf;
     }
-  
-  
-
-  /*
-public void insertarPost(String xlexema, Integer xtoken) {
-            Nodos_InfoPost listaPost = new Nodos_InfoPost(xlexema, xtoken);
-        
-        if (Cabeza_infpost == null) {
-             Cabeza_infpost= listaPost;
-            pip = Cabeza_infpost;
-        } else {
-            pip.sig = listaPost;
-            pip = listaPost;
-        }    
-    }
-  */
-/*
-public void imprimirNodospol() {
-        nodosip = Cabeza_infpost;
-        System.out.println("LISTA POSTFIJA");
-        while (nodosip != null){
-
-                System.out.println("[ " + nodosip.lexema + "|" + nodosip.token+"]");
-           
-          nodosip= nodosip.sig;
-        }
-    }
-*/
-
+ 
     public void  Push_pilaInicial(int xtoken){
             Inicial.push(xtoken);
     }

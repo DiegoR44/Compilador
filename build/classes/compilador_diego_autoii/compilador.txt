@@ -1,32 +1,8 @@
-ALGORITMO diego () ES
-
-
- a : ENTERO ;
- b : DECIMAL ;
- c : LOGICO ;
- d : CADENA ;
- x: LOGICO 
-
+ALGORITMO prueba () ES
+    A : ENTERO
+  
+    
 INICIO
-
-d:= 'ola';
-a:= 5+5*10;
-x:=FALSO;
-
-    SI (x AND c) ENTONCES {si 1}
-	    LEER a,c;
-        SI (a > b) ENTONCES {si 2}
-           {D} MIENTRAS (b<a) HACER
-                LEER a,c 
-           {BRF D} FIN_MIENTRAS
-       {C} SINO {else s 2} {Bri B}
-            ESCRIBIR a,d
-        FIN_SI {fin si 2}
-    SINO {else si 1}
-        ESCRIBIR a,d;
-        MIENTRAS (b<a) HACER
-            LEER a,c
-        FIN_MIENTRAS
-	FIN_SI {fin si 1}
-
+A:=2+2;
+ESCRIBIR A;
 FIN

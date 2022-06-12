@@ -15,6 +15,7 @@ public class ListaObjPolish {
     public ListaObjPolish(String xlexema_polish, int xtoken) {
         this.lexema_polish=xlexema_polish;
         this.token=xtoken;
+        
     }
     
 }

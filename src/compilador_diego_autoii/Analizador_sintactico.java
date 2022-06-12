@@ -5,6 +5,11 @@
  */
 package compilador_diego_autoii;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 /**
@@ -14,17 +19,24 @@ import java.util.Stack;
 public class Analizador_sintactico extends Analizador_Semantico {
 
     Nodos p;
-
+    protected ArrayList<String> Vars = new ArrayList();
+  
     String lexemaError;
     int EtiquetaIf;
     int EtiquetaWhile;
     boolean errorEncontrado = false;
     //String nombre_ID;
-
-    Stack<Integer> If= new Stack<Integer>();
-    Stack<Integer> While= new Stack<Integer>();
+    String op1;
+    String op2;
+    String ASMText="";
+      String Operador="";
+    String resultadoASM;
+  
+    int contador = 0;
+    Stack<Integer> If = new Stack<Integer>();
+    Stack<Integer> While = new Stack<Integer>();
     String lexemaAux;
-
+    Stack<String> SearchPolishh = new <String> Stack();
     int tipo;
 
     String Id_Algoritmo;
@@ -98,11 +110,14 @@ public class Analizador_sintactico extends Analizador_Semantico {
                                 if (p.token == 217) {//ES
                                     p = p.sig;
                                     Dec_variable();
+
                                     if (p.token == 213) { //INICIO
                                         p = p.sig;
                                         imprimirLista_Variables();
                                         Accion();
                                         imprimirNodospol();
+                                        CodigoObjetoANDarchivoASM();
+
                                         if (p.token == 214) { //FIN
                                             break;
                                         } else {
@@ -147,7 +162,6 @@ public class Analizador_sintactico extends Analizador_Semantico {
                 Push_pilaInicial(p.token);
                 EToken.push(p.token);
                 ELexemas.push(p.lexema);
-
                 p = p.sig;
                 Asignacion();
                 break;
@@ -220,20 +234,20 @@ public class Analizador_sintactico extends Analizador_Semantico {
         While.push(EtiquetaWhile);
         Exp_logica();
         Evaluar_Infijo_Post();
-        insertarNodoPol("D"+(While.peek()),600);
-       
+        insertarNodoPol("D" + (While.peek()), 0);
+
         Codigo_IntermedioPolish();
-        insertarNodoPol("Brf C"+(While.peek()),0);
-        
+        insertarNodoPol("Brf C" + (While.peek()), 0);
+
         if (p.token == 210) {
             p = p.sig;
 
             Accion();
-          insertarNodoPol("Bri D"+(While.peek()),0);
-            
+            insertarNodoPol("Bri D" + (While.peek()), 0);
+
             if (p.token == 211) {
-               insertarNodoPol("C"+(While.peek()),600);
-                
+                insertarNodoPol("C" + (While.peek()), 0);
+
                 While.pop();
                 p = p.sig;
             } else {
@@ -250,22 +264,22 @@ public class Analizador_sintactico extends Analizador_Semantico {
         Exp_logica();
         Evaluar_Infijo_Post();
         Codigo_IntermedioPolish();
-      insertarNodoPol("Brf A"+(If.peek()),0);
-        
+        insertarNodoPol("Brf A" + (If.peek()), 0);
+
         if (p.token == 206) { //ENTONCES
             p = p.sig;
             Accion();
-            insertarNodoPol("Bri B"+(If.peek()),0);
-            
+            insertarNodoPol("Bri B" + (If.peek()), 0);
+
             if (p.token == 208) { //SINO
                 p = p.sig;
-                insertarNodoPol("A"+(If.peek()),600);
-            
+                insertarNodoPol("A" + (If.peek()), 0);
+
                 Accion();
             }
             if (p.token == 207) { //FIN_SI
-              insertarNodoPol("B"+(If.peek()),0);
-              
+                insertarNodoPol("B" + (If.peek()), 0);
+
                 If.pop();
                 p = p.sig;
             } else {
@@ -304,6 +318,7 @@ public class Analizador_sintactico extends Analizador_Semantico {
                         || (p.sig.token == 111) || (p.sig.token == 112) || (p.sig.token == 113)) {//relacionales
 
                     exprecion_relacional();
+
                 } else {
 
                     Exp_logica_1();
@@ -372,11 +387,9 @@ public class Analizador_sintactico extends Analizador_Semantico {
         if (p.token == 100) {
             EToken.push(p.token);
             ELexemas.push(p.lexema);
-
             p = p.sig;
             if (p.token == 116) {
                 p = p.sig;
-
                 Leer();
             }
         }
@@ -407,6 +420,7 @@ public class Analizador_sintactico extends Analizador_Semantico {
                 exprecion_numerica1();
                 break;
             case 100:
+
                 Validar_variable_noDeclarada();
                 Push_pilaInicial(p.token);
                 EToken.push(p.token);
@@ -467,6 +481,7 @@ public class Analizador_sintactico extends Analizador_Semantico {
     }
 
     private void Dec_variable() {
+
         if (p.token == 100) {
             if (p.lexema.equals(Id_Algoritmo)) {
                 imprimirMensajeError_semantico(517);
@@ -475,15 +490,17 @@ public class Analizador_sintactico extends Analizador_Semantico {
                 lexemaAux = p.lexema;
             }
             p = p.sig;
+
             if (p.token == 117) {//:
+
                 p = p.sig;
                 Nombre_tipo_simple();
                 insertarnodos_Variables(lexemaAux, tipo);
 
                 if (p.token == 118) {//;
-                    p = p.sig;
 
-                    Dec_variable();
+                    p = p.sig;
+                    Dec_variable();;
                 }
             } else {
                 imprimirMensajeError(515);
@@ -495,11 +512,10 @@ public class Analizador_sintactico extends Analizador_Semantico {
 
     private void Nombre_tipo_simple() {
         switch (p.token) {
-
             case 218:
+
                 p.token = 101;
                 tipo = p.token;
-
                 p = p.sig;
 
                 break;
@@ -511,6 +527,7 @@ public class Analizador_sintactico extends Analizador_Semantico {
                 p = p.sig;
                 break;
             case 220:
+
                 p.token = 103;
                 tipo = p.token;
                 p = p.sig;
@@ -731,9 +748,8 @@ public class Analizador_sintactico extends Analizador_Semantico {
                     break;
                 case 3: //)
                     while (!ETokenO.peek().equals(114)) {
-                       insertarNodoPol(ELexemasO.pop(),ETokenO.pop());
+                        insertarNodoPol(ELexemasO.pop(), ETokenO.pop());
 
-                      
                     }
                     ETokenO.pop();
                     ELexemasO.pop();
@@ -750,20 +766,14 @@ public class Analizador_sintactico extends Analizador_Semantico {
 
                 case 8: //*/
                     while (Jerarquias(ETokenO.peek()) >= Jerarquias(ETokenI.peek())) {
-                        insertarNodoPol(ELexemasO.pop(),ETokenO.pop());
-                      
-                        //PolishLista.add(Integer.valueOf(ELexemasO.pop()),String.valueOf(ETokenO.pop()));
+                        insertarNodoPol(ELexemasO.pop(), ETokenO.pop());
                     }
                     ETokenO.push(ETokenI.pop());
                     ELexemasO.push(ELexemasI.pop());
 
                     break;
-                case 9: //token
-                    //System.out.println("aqui por que:"+ p.token+p.lexema);
-                     
-                    insertarNodoPol(ELexemasI.pop(),ETokenI.pop());
-                  
-                   
+                case 9: //token 
+                    insertarNodoPol(ELexemasI.pop(), ETokenI.pop());
 
                     break;
             }
@@ -771,69 +781,6 @@ public class Analizador_sintactico extends Analizador_Semantico {
 
     }
 
-    /*
-    private void listaPostfija() {
-        ETI.push(115);
-        ELI.push(")");
-        while (!ET.empty()) {
-            ETI.push(ET.pop());
-            ELI.push(EL.pop());
-        }
-        ETI.push(114);
-        ELI.push("(");
-
-        while (!ETI.empty()) {
-            switch (Jerarquias(ETI.peek())) {
-                case 1:
-                    ETO.push(ETI.pop());
-                    ELO.push(ELI.pop());
-
-                    break;
-                case 2: 
-                    ETO.push(ETI.pop());
-                    ELO.push(ELI.pop());
-                    break;
-                case 3: 
-                    while (!ETO.peek().equals(114)) {
-
-                        insertarPost(ELO.pop(), ETO.pop());
-
-                    }
-
-                    ETO.pop();
-                    ELO.pop();
-                    ETI.pop();
-                    ELI.pop();
-                    break;
-                case 4: 
-
-                case 5:
-
-                case 6: 
-
-                case 7: 
-
-                case 8:
-                    while (Jerarquias(ETO.peek()) >= Jerarquias(ETI.peek())) {
-
-                        insertarPost(ELO.pop(), ETO.pop());
-
-                    }
-                    ETO.push(ETI.pop());
-                    ELO.push(ELI.pop());
-
-                    break;
-                case 9: 
-
-                    insertarPost(ELI.pop(), ETI.pop());
-
-                    break;
-            }
-        }
-
-        Validar_SistemaTipos();
-    }
-     */
     public void Validar_variableRepetida() {
         Nodos = cabeza_variable;
         while (Nodos != null) {
@@ -863,6 +810,221 @@ public class Analizador_sintactico extends Analizador_Semantico {
             imprimirMensajeError_semantico(519);
         }
 
+    }
+
+    public void CodigoObjetoANDarchivoASM() {
+        
+        String ruta = "C:\\masm614\\asm\\PROGRAMA.ASM";
+           
+          ASMText = "\n\nINCLUDE MACROS.MAC\n"
+                + ".MODEL SMALL\n"
+                + ".586\n"
+                + ".STACK 100h\n"
+                + ".DATA\n";
+          
+        Nodos_Variables nodos;
+        nodos = cabeza_variable;
+  
+        while (nodos != null) {
+            if (nodos.tipos == 220) {
+                ASMText += ""+nodos.lexemas_variables +" ;/provisional, 13,10,'$' ";
+                AgregarCadena(nodos.lexemas_variables);
+            } else {
+                ASMText += "\n\t\t\t" + nodos.lexemas_variables + " db"+" ?" ;
+            }
+            nodos = nodos.sig;
+        }
+        ASMText += "\n\t\t\timprimir db ?";
+        ASMText += "\n\t\t\t;/Variables";
+
+        ASMText += "\n.CODE\n"
+                + ".STARTUP\n"
+                + "\t\t\tMOV     AX,@DATA\n"
+                + "\t\t\tMOV     DS,AX\n"
+                + "\t\t\tCALL    COMPI\n"
+                + "\t\t\tMOV AX,4C00H\n"
+                + "\t\t\tINT 21H\n"
+                + "COMPI PROC\n";;
+                
+        
+       pPol= cabezaPol;
+        
+        while (pPol != null) {
+            if (pPol.token >= 104 && pPol.token < 114 || pPol.token == 119
+                    || pPol.token >= 200 && pPol.token <= 202 || pPol.token == 215 || pPol.token == 216 || pPol.token == 0) {
+                
+                Operador = pPol.lexema_polish;
+
+                switch (Operador) {
+                    case "+":
+                        operacionesASM("SUMAR");
+                        break;
+                    case "-":
+                        operacionesASM("RESTA");
+                        break;
+                    case "*":
+                        operacionesASM("MULTI");
+                        break;
+                    case "/":
+                        operacionesASM("DIVIDE");
+                        break;
+                    case ":=":
+                        operacionAsignarASM("I_ASIGNAR");
+                        break;
+                    case "LEER":
+                        operacionLeerASM("LEE");
+                        break;
+                    case "ESCRIBIR":
+                        operacionEscribirASM("LEELN","WRITE");
+                        break;
+                    case "=":
+                        operacionesASM("I_IGUAL");
+                        break;
+                    case ">":
+                        operacionesASM("I_MAYOR");
+                        break;
+                    case "<":
+                        operacionesASM("I_MENOR");
+                        break;
+                    case ">=":
+                        operacionesASM("I_MAYORIGUAL");
+                        break;
+                    case "<=":
+                        operacionesASM("I_MENORIGUAL");
+                        break;
+                    case "<>":
+                        operacionesASM("I_DIFERENTES");
+                        break;
+
+                }
+
+                SALTOSandETIQUETAS("JF", "JMP");
+                
+            } else {
+                SearchPolishh.push(pPol.lexema_polish);
+            }
+            pPol = pPol.sig;
+        }
+        
+       ASMText+="\t\t\tret\n"+
+                "COMPI  ENDP\n"+
+                ".EXIT\n"+
+                "END";
+        System.out.println("\n ASM....");
+        System.out.println(ASMText);
+        
+        GeneracionArchivoASM(ruta);
+    }
+
+    
+    public void GeneracionArchivoASM(String xruta){
+        try{
+            File file=new File(xruta);
+            //si el archivo no existe lo crea
+            if(!file.exists()){
+                file.createNewFile();
+            }
+            FileWriter fw=new FileWriter(file);
+            BufferedWriter bw=new BufferedWriter(fw);
+            bw.write(ASMText);
+            bw.close();
+            System.out.println("SE CREO EL ARCHIVO EN: "+xruta);
+            
+        }catch(Exception e){
+            System.out.println("NO SE AH PODIDO CREAR EL ARCHIVO ASM");
+        }
+    }
+    public void operacionesASM(String MacrosOperadores) {
+        op1 = SearchPolishh.pop();
+        op2 = SearchPolishh.pop();
+        ASMText += "\t\t\t"+MacrosOperadores + " "+op1 + "," + op2 + ",Resultado"  + contador +"\n";
+
+        resultadoASM =( "Resultado" + contador);
+        SearchPolishh.push(resultadoASM);
+        ASMText = Reemplazar(ASMText, ";/Variables", " Resultado" + contador + " db " + " ? " + "\n\t\t\t;/Variables");
+    }
+
+    public void operacionAsignarASM(String AsignarMacro) {
+        op1 = SearchPolishh.pop();
+        op2 = SearchPolishh.pop();
+        boolean bandera = false;
+        for (int i = 0; i < Vars.size(); i++) {
+            if (Vars.get(i).equals(op1)) {
+                ASMText = Reemplazar(ASMText, "" + op1 + ";/provisional ", "\n\t\t\t" + op1 + " db " + op2);
+                bandera = true;
+                break;
+            }
+        }
+        if (bandera) {
+        } else {
+            ASMText += "\t\t\t "+AsignarMacro + " " +op2  + "," + op1 + "\n";
+
+        }
+    }
+
+    public void operacionLeerASM(String LeerMacro) {
+        op1 = SearchPolishh.pop();
+        boolean bandera = false;
+        for (int i = 0; i < Vars.size(); i++) {
+            if (Vars.get(i).equals(op1)) {
+
+                bandera = true;
+                break;
+            }
+        }
+        if (bandera) {
+            String STR = " " + op1 + ";/provisional";
+            boolean containerSTR = ASMText.indexOf(STR) >= 0;
+            if (containerSTR) {
+                ASMText = Reemplazar(ASMText, STR, "\n\t\t\t" + STR);
+                ASMText = Reemplazar(ASMText, ";/provisional", " db 0");
+
+            }
+        }
+        ASMText += "\t\t\t" + LeerMacro + " " + op1 + "\n";
+
+    }
+
+    public void operacionEscribirASM(String LEELN, String WRITE) {
+        op1 = SearchPolishh.pop();
+        boolean bandera = false;
+        for (int i = 0; i < Vars.size(); i++) {
+            if (Vars.get(i).equals(op1)) {
+
+                bandera = true;
+                break;
+            }
+        }
+        if (bandera) {
+            ASMText += "\t\t\t" + LEELN + " " + op1 + "\n";
+        } else {
+            ASMText += "\t\t\t" + WRITE+ " " + op1 + "\n";
+        }
+    }
+
+    public void SALTOSandETIQUETAS(String JF, String JMP) {
+        if (Operador.startsWith("Brf")) {
+            String p = Operador.substring(4, 6);
+            int auxCont = contador;
+            ASMText += JF +" Resultado" + (auxCont - 1) + "," + p + "\n";
+        } else if (Operador.startsWith("Bri")) {
+            String p = Operador.substring(4, 6);
+            ASMText += JMP +" "+ p + "\n";
+        } else if (Operador.startsWith("A") || Operador.startsWith("B")
+                || Operador.startsWith("C") || Operador.startsWith("D")) {
+            String p = Operador.substring(0, 2);
+            ASMText += " " + p + ":\n";
+
+        }
+        contador++;
+    }
+
+    public static String Reemplazar(String cadena, String buscar, String reemplazar) {
+        return cadena.replaceAll(buscar, reemplazar);
+    }
+
+    public void AgregarCadena(String cadena) {
+        Vars.add(cadena);
     }
 
     public static final String ANSI_RED = "\u001B[31m";
