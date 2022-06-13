@@ -1,8 +1,24 @@
 ALGORITMO prueba () ES
-    A : ENTERO
-  
+    r : ENTERO;
+    cr: ENTERO
+ 
     
 INICIO
-A:=2+2;
-ESCRIBIR A;
+
+r:=0;
+cr:=1;
+
+   MIENTRAS(r<=8)HACER
+     r:=r+1;
+     
+     ESCRIBIR r;
+
+  MIENTRAS (cr<=7)HACER
+        cr:=cr+1;
+       
+        ESCRIBIR cr;
+  FIN_MIENTRAS
+
+FIN_MIENTRAS
+
 FIN

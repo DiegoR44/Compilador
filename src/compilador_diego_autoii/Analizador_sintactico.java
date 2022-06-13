@@ -19,7 +19,7 @@ import java.util.Stack;
 public class Analizador_sintactico extends Analizador_Semantico {
 
     Nodos p;
-    protected ArrayList<String> Vars = new ArrayList();
+    public  ArrayList<String> Vars = new ArrayList();
   
     String lexemaError;
     int EtiquetaIf;
@@ -816,23 +816,21 @@ public class Analizador_sintactico extends Analizador_Semantico {
         
         String ruta = "C:\\masm614\\asm\\PROGRAMA.ASM";
            
-          ASMText = "\n\nINCLUDE MACROS.MAC\n"
-                + ".MODEL SMALL\n"
-                + ".586\n"
-                + ".STACK 100h\n"
-                + ".DATA\n";
-          
-        Nodos_Variables nodos;
-        nodos = cabeza_variable;
+         HeaderASM();
+       
+        p_variable = cabeza_variable;
   
-        while (nodos != null) {
-            if (nodos.tipos == 220) {
-                ASMText += ""+nodos.lexemas_variables +" ;/provisional, 13,10,'$' ";
-                AgregarCadena(nodos.lexemas_variables);
+        while (p_variable != null) {
+            if (p_variable.tipos == 103) {
+              
+                ASMText += "\n\t\t\t"+p_variable.lexemas_variables +" db "+" ;/provisional, 13,10,'$' ";
+               
+                Vars.add(p_variable.lexemas_variables);
+               
             } else {
-                ASMText += "\n\t\t\t" + nodos.lexemas_variables + " db"+" ?" ;
+                ASMText += "\n\t\t\t" + p_variable.lexemas_variables + " db"+" ?" ;
             }
-            nodos = nodos.sig;
+            p_variable= p_variable.sig;
         }
         ASMText += "\n\t\t\timprimir db ?";
         ASMText += "\n\t\t\t;/Variables";
@@ -906,10 +904,7 @@ public class Analizador_sintactico extends Analizador_Semantico {
             pPol = pPol.sig;
         }
         
-       ASMText+="\t\t\tret\n"+
-                "COMPI  ENDP\n"+
-                ".EXIT\n"+
-                "END";
+      FooterASM();
         System.out.println("\n ASM....");
         System.out.println(ASMText);
         
@@ -935,8 +930,8 @@ public class Analizador_sintactico extends Analizador_Semantico {
         }
     }
     public void operacionesASM(String MacrosOperadores) {
-        op1 = SearchPolishh.pop();
         op2 = SearchPolishh.pop();
+        op1 = SearchPolishh.pop();
         ASMText += "\t\t\t"+MacrosOperadores + " "+op1 + "," + op2 + ",Resultado"  + contador +"\n";
 
         resultadoASM =( "Resultado" + contador);
@@ -945,19 +940,24 @@ public class Analizador_sintactico extends Analizador_Semantico {
     }
 
     public void operacionAsignarASM(String AsignarMacro) {
-        op1 = SearchPolishh.pop();
         op2 = SearchPolishh.pop();
+        op1 = SearchPolishh.pop();
         boolean bandera = false;
         for (int i = 0; i < Vars.size(); i++) {
+           
             if (Vars.get(i).equals(op1)) {
+       
                 ASMText = Reemplazar(ASMText, "" + op1 + ";/provisional ", "\n\t\t\t" + op1 + " db " + op2);
+               
+                
                 bandera = true;
                 break;
             }
         }
         if (bandera) {
+            System.out.println("LLEGA CEDENA");
         } else {
-            ASMText += "\t\t\t "+AsignarMacro + " " +op2  + "," + op1 + "\n";
+            ASMText += "\t\t\t"+AsignarMacro + " " +op1  + "," + op2 + "\n";
 
         }
     }
@@ -1023,8 +1023,20 @@ public class Analizador_sintactico extends Analizador_Semantico {
         return cadena.replaceAll(buscar, reemplazar);
     }
 
-    public void AgregarCadena(String cadena) {
-        Vars.add(cadena);
+    public void FooterASM(){
+    
+     ASMText+="\t\t\tret\n"+
+                "COMPI  ENDP\n"+
+                ".EXIT\n"+
+                "END";
+    }
+    public void HeaderASM(){
+     ASMText = "\n\nINCLUDE MACROS.MAC\n"
+                + ".MODEL SMALL\n"
+                + ".586\n"
+                + ".STACK 100h\n"
+                + ".DATA\n";
+          
     }
 
     public static final String ANSI_RED = "\u001B[31m";
